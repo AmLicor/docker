@@ -1,9 +1,9 @@
-name: x86-64 拉取并保存 Docker 镜像
+name: x86-64 Pull and Save Docker Image
 on:
   workflow_dispatch:
     inputs:
       docker_images:
-        description: '请填写 docker 镜像名称，多个用英文逗号分开'
+        description: '请填写docker镜像名称 多个用英文逗号分开'
         required: true
         default: 'alpine:latest'  # 设置默认的 Docker 镜像列表
 
@@ -16,24 +16,24 @@ jobs:
         image: [${{ github.event.inputs.docker_images }}]
 
     steps:
-    - name: 检出代码库
+    - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: 清理 Docker 以释放空间
+    - name: Clean up Docker to free space
       run: |
           docker system prune -a -f
           docker volume prune -f
 
-    - name: 拉取 Docker 镜像
+    - name: Pull Docker Image
       run: |
         docker pull "${{ matrix.image }}" --platform "linux/amd64"
         docker save "${{ matrix.image }}" -o "${{ matrix.image //\//_ }}-amd64.tar"
 
-    - name: 压缩 TAR 文件
+    - name: Compress the TAR files
       if: matrix.image == 'alpine:latest'
       run: tar -czf x86-64-images.tar.gz *-amd64.tar
 
-    - name: 上传 artifact
+    - name: Upload artifact
       if: matrix.image == 'alpine:latest'
       uses: actions/upload-artifact@v4
       with:
@@ -41,7 +41,7 @@ jobs:
         path: x86-64-images.tar.gz
         retention-days: 60
 
-    - name: 清理中间文件
+    - name: Clean up intermediate files
       if: matrix.image == 'alpine:latest'
       run: |
         rm *-amd64.tar
